@@ -16,6 +16,9 @@ public class PlayerMove : MonoBehaviour
     Rigidbody2D _rb2d;
 
     RaycastHit2D _hitGround;
+    Vector3 _bounds;
+    Vector3 _layerLine;
+    Vector3 _nowSpeed;//現在の速度ベクトルを取得し、時間をかけることで瞬間移動を実装予定
 
     float _move;
     bool _isMoving = false;
@@ -25,6 +28,7 @@ public class PlayerMove : MonoBehaviour
     void Start()
     {
         _rb2d = GetComponent<Rigidbody2D>();
+        _bounds = GetComponent<Renderer>().bounds.extents;//キャラのサイズの半分
     }
 
     /// <summary>
@@ -45,13 +49,15 @@ public class PlayerMove : MonoBehaviour
         }
 
         //ジャンプ
-        Debug.DrawLine(transform.position, transform.position + Vector3.down);
-        _hitGround = Physics2D.Linecast(transform.position, transform.position + Vector3.down, _groundLayer);
+        _layerLine = transform.position + Vector3.down * _bounds.y * 1.05f;
+        Debug.DrawLine(_layerLine + Vector3.right * _bounds.x, _layerLine + Vector3.left * _bounds.x);
+        _hitGround = Physics2D.Linecast(_layerLine + Vector3.right * _bounds.x, _layerLine + Vector3.left * _bounds.x, _groundLayer);
         if (Input.GetKeyDown(KeyCode.Space) && _hitGround)
         {
             _isJumping = true;
+            _rb2d.AddForce(Vector3.up * _jump, ForceMode2D.Impulse);
         }
-        else if(_hitGround)
+        else if (_hitGround)
         {
             _isJumping = false;
         }
@@ -71,7 +77,5 @@ public class PlayerMove : MonoBehaviour
         {
             _rb2d.linearVelocityX = 0.0f;
         }
-
-
     }
 }
